@@ -101,7 +101,7 @@ var ThetaControl = {
       json: {
         "name": "camera.delete",
         "parameters" : {
-          fileUrls: [ file ]
+          fileUrls: [ fileUri ]
         }
       }
     };
@@ -156,9 +156,20 @@ var saveFileAndDelete = function(state) {
   else {
     var lastFileUri = jState.state._latestFileUrl;
     var filename = new Date().toISOString() + ".jpg";
-    request.get(lastFileUri).pipe(fs.createWriteStream(filename));
+    var fstream = fs.createWriteStream(filename);
+    fstream.on('finish', function() {
+      console.log("Finished writing file, delete from camera");
+      ThetaControl.deleteFile(lastFileUri, finished);
+    });
+    request.get(lastFileUri).pipe(fstream);
   }
 };
+
+var finished = function(body)
+{
+  console.log(body);
+}
+
 
 //This kicks the whole thing off!
 ThetaControl.connect(onConnect);
